@@ -95,14 +95,15 @@ async function monitorFlights() {
     emergencyFlights.forEach(f => printFlight(f));
   }
 
-  // Show some regular high-altitude traffic
-  const highAltitude = flights
-    .filter(f => f.altitude > 30000 && !flightTracker.isMilitary(f))
-    .slice(0, 5);
+  // Show some active flights
+  const activeFlights = flights
+    .filter(f => f.altitude > 10000 && !flightTracker.isMilitary(f) && f.speed > 200)
+    .sort((a, b) => b.altitude - a.altitude)
+    .slice(0, 8);
   
-  if (highAltitude.length > 0) {
-    console.log('\n✈️  HIGH ALTITUDE TRAFFIC (sample):');
-    highAltitude.forEach(f => printFlight(f));
+  if (activeFlights.length > 0) {
+    console.log('\n✈️  ACTIVE FLIGHTS (by altitude):');
+    activeFlights.forEach(f => printFlight(f));
   }
 
   console.log('\n' + '─'.repeat(60));
