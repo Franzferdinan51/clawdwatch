@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { flightTracker, Flight, FlightAlert } from './sources/flights';
+import { telegramAlerter } from './alerts/telegram';
 
 /**
  * 🦀 CLAWDWATCH
@@ -45,7 +46,9 @@ function printAlert(alert: FlightAlert) {
   console.log(`\n${icon} [${time}] ALERT: ${alert.message}`);
 }
 
-async function monitorFlights(region: 'middle_east' | 'europe' | 'usa' | 'asia' = 'middle_east') {
+let region: 'middle_east' | 'europe' | 'usa' | 'asia' = 'middle_east';
+
+async function monitorFlights() {
   printStatus(`Fetching flights for ${region.toUpperCase()}...`);
   
   const flights = await flightTracker.getRegion(region);
@@ -58,8 +61,13 @@ async function monitorFlights(region: 'middle_east' | 'europe' | 'usa' | 'asia' 
   // Analyze for alerts
   const alerts = flightTracker.analyze(flights);
   
-  // Print alerts first
-  alerts.forEach(printAlert);
+  // Print and send alerts
+  for (const alert of alerts) {
+    printAlert(alert);
+    if (telegramAlerter.isEnabled()) {
+      await telegramAlerter.sendFlightAlert(alert);
+    }
+  }
 
   // Filter military flights
   const militaryFlights = flights.filter(f => flightTracker.isMilitary(f));
@@ -68,6 +76,11 @@ async function monitorFlights(region: 'middle_east' | 'europe' | 'usa' | 'asia' 
   console.log(`\n📡 LIVE FLIGHT DATA — ${region.toUpperCase()}`);
   console.log('─'.repeat(60));
   console.log(`  Total: ${flights.length} | Military: ${militaryFlights.length} | Emergency: ${emergencyFlights.length}`);
+  
+  if (telegramAlerter.isEnabled()) {
+    console.log(`  Telegram: ✅ Connected`);
+  }
+  
   console.log('─'.repeat(60));
 
   // Show military flights
@@ -101,23 +114,34 @@ async function main() {
   console.log('🦀 Initializing Clawdwatch...\n');
 
   // Get region from env or default to middle_east
-  const region = (process.env.WATCH_REGION || 'middle_east') as 'middle_east' | 'europe' | 'usa' | 'asia';
+  region = (process.env.WATCH_REGION || 'middle_east') as typeof region;
   
   printStatus(`Monitoring region: ${region.toUpperCase()}`);
   printStatus('Connecting to OpenSky Network...');
   
+  // Telegram status
+  if (telegramAlerter.isEnabled()) {
+    printStatus('Telegram alerts: ✅ Enabled');
+    await telegramAlerter.sendStartup(region);
+  } else {
+    printStatus('Telegram alerts: ❌ Not configured (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)');
+  }
+  
   // Initial fetch
-  await monitorFlights(region);
+  await monitorFlights();
 
-  // Update every 30 seconds (OpenSky rate limit is ~10 requests per minute for anonymous)
+  // Update every 30 seconds
   setInterval(() => {
-    monitorFlights(region);
+    monitorFlights();
   }, 30000);
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\n\n🦀 Clawdwatch shutting down...');
+  if (telegramAlerter.isEnabled()) {
+    await telegramAlerter.send('🦀 Clawdwatch going offline.');
+  }
   process.exit(0);
 });
 

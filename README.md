@@ -125,10 +125,25 @@ Clawdwatch pushes alerts when it detects:
 - Military aircraft entering monitored airspace
 - Ships disabling AIS transponders (going dark)
 - Unusual flight pattern deviations
+- Emergency squawk codes (7500, 7600, 7700)
 - Correlated activity across multiple sources
-- Breaking news matching your watchlist
 
-**Supported Channels:** Telegram, Discord, Email, SMS
+### Telegram Setup
+
+1. Message [@BotFather](https://t.me/BotFather) on Telegram
+2. Create a new bot with `/newbot`
+3. Copy your bot token
+4. Get your chat ID (message [@userinfobot](https://t.me/userinfobot))
+5. Add to `.env`:
+
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+```
+
+Now you'll get instant alerts when something happens.
+
+**Supported Channels:** Telegram (live), Discord (coming soon)
 
 ---
 
@@ -152,10 +167,12 @@ Clawdwatch runs on the [Clawdbot](https://github.com/clawdbot/clawdbot) agent fr
 
 - [x] Project scaffolding
 - [x] OpenSky Network flight tracking (LIVE)
-- [ ] MarineTraffic integration
+- [x] Telegram alerts (LIVE)
+- [x] Ship tracking framework
+- [ ] MarineTraffic API integration
 - [ ] Twitter/Telegram scrapers
 - [ ] AI summarization pipeline
-- [ ] Alert system (Telegram/Discord)
+- [ ] Discord webhook alerts
 - [ ] Web dashboard with live map
 - [ ] Satellite imagery analysis
 - [ ] Mobile app
