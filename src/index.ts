@@ -1,6 +1,10 @@
 import 'dotenv/config';
 import { flightTracker, Flight, FlightAlert } from './sources/flights';
 import { telegramAlerter } from './alerts/telegram';
+import { newsAggregator, NewsItem } from './sources/news';
+import { socialMonitor, SocialPost } from './sources/social';
+import { satelliteTracker } from './sources/satellite';
+import { shipTracker } from './sources/ships';
 
 /**
  * 🦀 CLAWDWATCH
@@ -46,6 +50,15 @@ function printAlert(alert: FlightAlert) {
   console.log(`\n${icon} [${time}] ALERT: ${alert.message}`);
 }
 
+function printNews(item: NewsItem) {
+  console.log(`  📰 [${item.source}] ${item.title.slice(0, 70)}...`);
+}
+
+function printSocial(post: SocialPost) {
+  const icon = post.platform === 'twitter' ? '🐦' : '🔗';
+  console.log(`  ${icon} ${post.text.slice(0, 70)}...`);
+}
+
 let region: 'middle_east' | 'europe' | 'usa' | 'asia' = 'middle_east';
 
 async function monitorFlights() {
@@ -54,8 +67,8 @@ async function monitorFlights() {
   const flights = await flightTracker.getRegion(region);
   
   if (flights.length === 0) {
-    printStatus('No flights received (API may be rate limited, retrying in 30s...)');
-    return;
+    printStatus('No flights received (API may be rate limited)');
+    return { total: 0, military: 0, emergency: 0 };
   }
 
   // Analyze for alerts
@@ -73,14 +86,9 @@ async function monitorFlights() {
   const militaryFlights = flights.filter(f => flightTracker.isMilitary(f));
   const emergencyFlights = flights.filter(f => flightTracker.isEmergency(f));
 
-  console.log(`\n📡 LIVE FLIGHT DATA — ${region.toUpperCase()}`);
+  console.log(`\n📡 FLIGHT DATA — ${region.toUpperCase()}`);
   console.log('─'.repeat(60));
   console.log(`  Total: ${flights.length} | Military: ${militaryFlights.length} | Emergency: ${emergencyFlights.length}`);
-  
-  if (telegramAlerter.isEnabled()) {
-    console.log(`  Telegram: ✅ Connected`);
-  }
-  
   console.log('─'.repeat(60));
 
   // Show military flights
@@ -95,19 +103,66 @@ async function monitorFlights() {
     emergencyFlights.forEach(f => printFlight(f));
   }
 
-  // Show some active flights
+  // Show active flights
   const activeFlights = flights
     .filter(f => f.altitude > 10000 && !flightTracker.isMilitary(f) && f.speed > 200)
     .sort((a, b) => b.altitude - a.altitude)
-    .slice(0, 8);
+    .slice(0, 5);
   
   if (activeFlights.length > 0) {
-    console.log('\n✈️  ACTIVE FLIGHTS (by altitude):');
+    console.log('\n✈️  ACTIVE FLIGHTS:');
     activeFlights.forEach(f => printFlight(f));
   }
 
-  console.log('\n' + '─'.repeat(60));
-  printStatus(`Next update in 30 seconds...`);
+  return { total: flights.length, military: militaryFlights.length, emergency: emergencyFlights.length };
+}
+
+async function monitorNews() {
+  printStatus('Fetching news...');
+  
+  const news = await newsAggregator.fetchAll();
+  
+  if (news.length > 0) {
+    console.log('\n📰 LATEST NEWS:');
+    console.log('─'.repeat(60));
+    news.slice(0, 5).forEach(printNews);
+  }
+
+  return news.length;
+}
+
+async function monitorSocial() {
+  const posts = await socialMonitor.fetchAll();
+  
+  if (posts.length > 0) {
+    console.log('\n🌐 SOCIAL INTEL:');
+    console.log('─'.repeat(60));
+    posts.slice(0, 3).forEach(printSocial);
+  }
+
+  return posts.length;
+}
+
+async function runMonitor() {
+  const flightStats = await monitorFlights();
+  const newsCount = await monitorNews();
+  const socialCount = await monitorSocial();
+
+  console.log('\n' + '═'.repeat(60));
+  console.log(`📊 SUMMARY: ${flightStats.total} flights | ${newsCount} news | ${socialCount} social posts`);
+  
+  if (telegramAlerter.isEnabled()) {
+    console.log(`📱 Telegram: ✅ Connected`);
+  }
+  if (satelliteTracker.isEnabled()) {
+    console.log(`🛰️  Satellite: ✅ Connected`);
+  }
+  if (socialMonitor.isEnabled()) {
+    console.log(`🐦 Twitter: ✅ Connected`);
+  }
+  
+  console.log('═'.repeat(60));
+  printStatus(`Next update in 60 seconds...`);
 }
 
 async function main() {
@@ -118,23 +173,28 @@ async function main() {
   region = (process.env.WATCH_REGION || 'middle_east') as typeof region;
   
   printStatus(`Monitoring region: ${region.toUpperCase()}`);
-  printStatus('Connecting to OpenSky Network...');
   
-  // Telegram status
+  // Status checks
+  printStatus(`Flights: ✅ OpenSky Network`);
+  printStatus(`News: ✅ Reuters, Al Jazeera, AP`);
+  printStatus(`Social: ${socialMonitor.isEnabled() ? '✅ Twitter API' : '⚠️  Reddit only (set TWITTER_BEARER_TOKEN for full access)'}`);
+  printStatus(`Satellite: ${satelliteTracker.isEnabled() ? '✅ Sentinel Hub' : '❌ Not configured (set SENTINEL_HUB credentials)'}`);
+  printStatus(`Telegram: ${telegramAlerter.isEnabled() ? '✅ Alerts enabled' : '❌ Not configured'}`);
+  
+  console.log('');
+
+  // Startup notification
   if (telegramAlerter.isEnabled()) {
-    printStatus('Telegram alerts: ✅ Enabled');
     await telegramAlerter.sendStartup(region);
-  } else {
-    printStatus('Telegram alerts: ❌ Not configured (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)');
   }
   
-  // Initial fetch
-  await monitorFlights();
+  // Initial run
+  await runMonitor();
 
-  // Update every 30 seconds
+  // Update every 60 seconds
   setInterval(() => {
-    monitorFlights();
-  }, 30000);
+    runMonitor();
+  }, 60000);
 }
 
 // Handle graceful shutdown

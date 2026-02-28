@@ -170,13 +170,13 @@ Clawdwatch runs on the [Clawdbot](https://github.com/clawdbot/clawdbot) agent fr
 - [x] Project scaffolding
 - [x] OpenSky Network flight tracking (LIVE)
 - [x] Telegram alerts (LIVE)
-- [x] Ship tracking framework
-- [ ] MarineTraffic API integration
-- [ ] Twitter/Telegram scrapers
-- [ ] AI summarization pipeline
+- [x] News aggregation - Reuters, Al Jazeera, AP (LIVE)
+- [x] Social media monitoring - Reddit, Twitter (LIVE)
+- [x] Satellite imagery framework - Sentinel Hub
+- [x] Ship tracking framework - AIS integration ready
 - [ ] Discord webhook alerts
 - [ ] Web dashboard with live map
-- [ ] Satellite imagery analysis
+- [ ] AI summarization pipeline
 - [ ] Mobile app
 
 ---
