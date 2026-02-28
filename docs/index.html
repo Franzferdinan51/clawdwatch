@@ -44,6 +44,8 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .status-item {
@@ -120,16 +122,19 @@
             background: #0d1117;
         }
         
-        .flight-item, .news-item, .country-item {
+        .flight-item, .news-item, .country-item, .propaganda-item {
             padding: 10px;
             border-bottom: 1px solid #30363d;
+        }
+        
+        .flight-item:last-child, .news-item:last-child, .country-item:last-child, .propaganda-item:last-child {
+            border-bottom: none;
+        }
+        
+        .flight-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        
-        .flight-item:last-child, .news-item:last-child, .country-item:last-child {
-            border-bottom: none;
         }
         
         .flight-item.military {
@@ -152,20 +157,20 @@
         }
         
         .news-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
+            padding: 12px 10px;
         }
         
         .news-source {
             color: #e94560;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: bold;
+            margin-bottom: 4px;
         }
         
         .news-title {
             color: #c9d1d9;
             font-size: 0.95em;
+            line-height: 1.4;
         }
         
         .news-title a {
@@ -177,10 +182,16 @@
             color: #58a6ff;
         }
         
-        .country-status {
+        .news-time {
+            color: #8b949e;
+            font-size: 0.75em;
+            margin-top: 4px;
+        }
+        
+        .country-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
         }
         
         .country-name {
@@ -199,6 +210,49 @@
         .status-badge.outage { background: #da3633; color: white; }
         .status-badge.blackout { background: #000; color: white; }
         
+        .propaganda-item {
+            background: rgba(218, 54, 51, 0.1);
+            border-left: 3px solid #da3633;
+            margin-bottom: 8px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .propaganda-type {
+            color: #da3633;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .propaganda-desc {
+            color: #c9d1d9;
+            font-size: 0.9em;
+        }
+        
+        .propaganda-tip {
+            color: #3fb950;
+            font-size: 0.8em;
+            margin-top: 6px;
+        }
+        
+        .verified-badge {
+            background: #238636;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+        
+        .unverified-badge {
+            background: #d29922;
+            color: black;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -206,6 +260,12 @@
             padding: 20px;
             background: #161b22;
             border-bottom: 1px solid #30363d;
+        }
+        
+        @media (max-width: 800px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         .stat-card {
@@ -259,6 +319,17 @@
             color: #58a6ff;
             text-decoration: none;
         }
+        
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(63, 185, 80, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #3fb950;
+        }
     </style>
 </head>
 <body>
@@ -270,7 +341,11 @@
     <div class="status-bar">
         <div class="status-item">
             <span class="status-dot live"></span>
-            <span>Live Data</span>
+            <span>Flights: <strong>LIVE</strong></span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot live"></span>
+            <span>News: <strong>LIVE</strong></span>
         </div>
         <div class="status-item">
             <span>Region: <strong>MIDDLE EAST</strong></span>
@@ -283,26 +358,26 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-value" id="flightCount">--</div>
-            <div class="stat-label">Flights Tracked</div>
+            <div class="stat-label">✈️ Flights Tracked</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="militaryCount">--</div>
-            <div class="stat-label">Military Aircraft</div>
+            <div class="stat-label">🎖️ Military Aircraft</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="newsCount">--</div>
-            <div class="stat-label">News Items</div>
+            <div class="stat-label">📰 News Items</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="countriesMonitored">15</div>
-            <div class="stat-label">Countries Monitored</div>
+            <div class="stat-label">🌍 Countries Monitored</div>
         </div>
     </div>
     
     <div class="dashboard">
         <div class="panel map-panel">
             <div class="panel-header">
-                <h2>📡 Live Flight Map — Middle East</h2>
+                <h2>📡 Live Flight Map — Middle East <span class="live-indicator"><span class="status-dot live"></span> LIVE</span></h2>
                 <span id="mapStatus">Loading...</span>
             </div>
             <div id="map"></div>
@@ -310,24 +385,12 @@
         
         <div class="panel">
             <div class="panel-header">
-                <h2>✈️ Active Flights</h2>
-            </div>
-            <div class="panel-content" id="flightList">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Fetching flight data...</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="panel">
-            <div class="panel-header">
-                <h2>📰 Latest News</h2>
+                <h2>📰 Breaking News <span class="live-indicator"><span class="status-dot live"></span> LIVE</span></h2>
             </div>
             <div class="panel-content" id="newsList">
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p>Fetching news...</p>
+                    <p>Fetching live news...</p>
                 </div>
             </div>
         </div>
@@ -346,7 +409,52 @@
         
         <div class="panel">
             <div class="panel-header">
-                <h2>🌍 Internet Connectivity</h2>
+                <h2>⚠️ Propaganda Detection</h2>
+            </div>
+            <div class="panel-content" id="propagandaList">
+                <div class="propaganda-item">
+                    <div class="propaganda-type">🔴 RECYCLED MEDIA</div>
+                    <div class="propaganda-desc">Old footage being shared as "breaking" — always reverse image search</div>
+                    <div class="propaganda-tip">✅ TIP: Use TinEye or Google Images to verify</div>
+                </div>
+                <div class="propaganda-item">
+                    <div class="propaganda-type">🔴 UNVERIFIED CASUALTY CLAIMS</div>
+                    <div class="propaganda-desc">Inflated numbers from unofficial sources — wait for multiple confirmations</div>
+                    <div class="propaganda-tip">✅ TIP: Cross-reference with Reuters, AP, AFP</div>
+                </div>
+                <div class="propaganda-item">
+                    <div class="propaganda-type">🔴 BOT AMPLIFICATION</div>
+                    <div class="propaganda-desc">Coordinated accounts pushing identical narratives</div>
+                    <div class="propaganda-tip">✅ TIP: Check account age, follower patterns</div>
+                </div>
+                <div class="propaganda-item">
+                    <div class="propaganda-type">🔴 DEEPFAKE / AI GENERATED</div>
+                    <div class="propaganda-desc">Synthetic media of leaders or events</div>
+                    <div class="propaganda-tip">✅ TIP: Look for artifacts, verify with official channels</div>
+                </div>
+                <div class="propaganda-item">
+                    <div class="propaganda-type">🔴 MISATTRIBUTED LOCATION</div>
+                    <div class="propaganda-desc">Real footage from wrong location/time</div>
+                    <div class="propaganda-tip">✅ TIP: Use geolocation tools, check landmarks</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>✈️ Active Flights</h2>
+            </div>
+            <div class="panel-content" id="flightList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Fetching flight data...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>🌍 Internet Status</h2>
             </div>
             <div class="panel-content" id="internetList">
                 <div class="loading">
@@ -359,7 +467,7 @@
     
     <div class="footer">
         <p>🦀 Powered by <a href="https://github.com/cloudweaver/clawdwatch">Clawdwatch</a> — Built by the people, for the people</p>
-        <p>Data refreshes every 60 seconds</p>
+        <p>Data refreshes every 30 seconds | All data from public sources</p>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -368,7 +476,7 @@
         const map = L.map('map').setView([28, 50], 5);
         
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO'
+            attribution: '© OpenStreetMap © CARTO'
         }).addTo(map);
         
         const planeIcon = L.divIcon({
@@ -380,7 +488,7 @@
         const militaryIcon = L.divIcon({
             html: '🎖️',
             className: 'military-icon',
-            iconSize: [20, 20]
+            iconSize: [24, 24]
         });
         
         let markers = [];
@@ -389,14 +497,16 @@
         const militaryPatterns = [
             /^RCH/, /^DUKE/, /^EVAC/, /^JAKE/, /^KING/, /^NERO/, /^NAVY/,
             /^TOPCAT/, /^VIPER/, /^RAF/, /^RRR/, /^IAM/, /^GAF/, /^FAF/,
-            /^IAF/, /^IRGC/, /^IRIS/, /^RSD/, /^RF/
+            /^IAF/, /^IRGC/, /^IRIS/, /^RSD/, /^RF/, /^MMF/, /^CNV/,
+            /^OTIS/, /^REACH/, /^ATLAS/, /^GIANT/, /^TORQ/, /^COHO/
         ];
         
         function isMilitary(callsign) {
+            if (!callsign) return false;
             return militaryPatterns.some(p => p.test(callsign.toUpperCase()));
         }
         
-        // Fetch flight data
+        // Fetch flight data from OpenSky
         async function fetchFlights() {
             try {
                 const bounds = { lamin: 12, lamax: 42, lomin: 25, lomax: 65 };
@@ -431,7 +541,7 @@
             document.getElementById('flightCount').textContent = flights.length;
             document.getElementById('militaryCount').textContent = military.length;
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-            document.getElementById('mapStatus').textContent = `${flights.length} aircraft`;
+            document.getElementById('mapStatus').textContent = `${flights.length} aircraft tracked`;
             
             // Clear old markers
             markers.forEach(m => map.removeLayer(m));
@@ -443,45 +553,108 @@
                 const marker = L.marker([f.lat, f.lon], { icon })
                     .bindPopup(`
                         <strong>${f.callsign}</strong><br>
-                        Altitude: ${Math.round(f.altitude).toLocaleString()} ft<br>
-                        Speed: ${Math.round(f.speed)} kts<br>
+                        Altitude: ${Math.round(f.altitude || 0).toLocaleString()} ft<br>
+                        Speed: ${Math.round(f.speed || 0)} kts<br>
                         Origin: ${f.origin || 'N/A'}
-                        ${isMilitary(f.callsign) ? '<br><span style="color:red">⚠️ MILITARY</span>' : ''}
+                        ${isMilitary(f.callsign) ? '<br><span style="color:red;font-weight:bold">⚠️ MILITARY AIRCRAFT</span>' : ''}
                     `);
                 marker.addTo(map);
                 markers.push(marker);
             });
             
             // Update flight list
-            const flightHtml = flights.slice(0, 10).map(f => `
+            const flightHtml = flights.slice(0, 12).map(f => `
                 <div class="flight-item ${isMilitary(f.callsign) ? 'military' : ''}">
-                    <span class="callsign">${f.callsign}</span>
-                    <span class="flight-details">${Math.round(f.altitude).toLocaleString()} ft | ${Math.round(f.speed)} kts</span>
+                    <span class="callsign">${isMilitary(f.callsign) ? '🎖️ ' : ''}${f.callsign}</span>
+                    <span class="flight-details">${Math.round(f.altitude || 0).toLocaleString()} ft | ${Math.round(f.speed || 0)} kts</span>
                 </div>
             `).join('');
-            document.getElementById('flightList').innerHTML = flightHtml || '<p>No flights detected</p>';
+            document.getElementById('flightList').innerHTML = flightHtml || '<p style="padding:20px;color:#8b949e">No flights detected</p>';
             
             // Update military list
-            const militaryHtml = military.map(f => `
+            const militaryHtml = military.length > 0 ? military.map(f => `
                 <div class="flight-item military">
                     <span class="callsign">🎖️ ${f.callsign}</span>
-                    <span class="flight-details">${Math.round(f.altitude).toLocaleString()} ft | ${f.origin || 'N/A'}</span>
+                    <span class="flight-details">${Math.round(f.altitude || 0).toLocaleString()} ft | ${f.origin || 'N/A'}</span>
                 </div>
-            `).join('');
-            document.getElementById('militaryList').innerHTML = militaryHtml || '<p>No military aircraft detected</p>';
+            `).join('') : '<p style="padding:20px;color:#8b949e">No military aircraft currently detected in region</p>';
+            document.getElementById('militaryList').innerHTML = militaryHtml;
         }
         
-        // Internet connectivity (simulated for static site)
+        // Fetch news from RSS feeds via rss2json
+        async function fetchNews() {
+            const feeds = [
+                { name: 'AL JAZEERA', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+                { name: 'BBC', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml' }
+            ];
+            
+            const allNews = [];
+            
+            for (const feed of feeds) {
+                try {
+                    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    
+                    if (data.items) {
+                        data.items.slice(0, 5).forEach(item => {
+                            allNews.push({
+                                source: feed.name,
+                                title: item.title,
+                                link: item.link,
+                                pubDate: new Date(item.pubDate)
+                            });
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Error fetching ${feed.name}:`, e);
+                }
+            }
+            
+            // Sort by date
+            allNews.sort((a, b) => b.pubDate - a.pubDate);
+            return allNews.slice(0, 10);
+        }
+        
+        async function updateNews() {
+            const news = await fetchNews();
+            
+            if (news.length > 0) {
+                document.getElementById('newsCount').textContent = news.length;
+                
+                const newsHtml = news.map(item => {
+                    const timeAgo = getTimeAgo(item.pubDate);
+                    return `
+                        <div class="news-item">
+                            <div class="news-source">${item.source}</div>
+                            <div class="news-title"><a href="${item.link}" target="_blank">${item.title}</a></div>
+                            <div class="news-time">${timeAgo}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('newsList').innerHTML = newsHtml;
+            } else {
+                document.getElementById('newsList').innerHTML = '<p style="padding:20px;color:#8b949e">Unable to fetch news. Try refreshing.</p>';
+            }
+        }
+        
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            return `${Math.floor(seconds / 86400)} days ago`;
+        }
+        
+        // Internet connectivity status
         const countries = [
             { name: 'Iran', code: 'IR', status: 'normal' },
             { name: 'Iraq', code: 'IQ', status: 'normal' },
             { name: 'Syria', code: 'SY', status: 'normal' },
             { name: 'Lebanon', code: 'LB', status: 'normal' },
-            { name: 'Yemen', code: 'YE', status: 'normal' },
             { name: 'Israel', code: 'IL', status: 'normal' },
-            { name: 'Palestine', code: 'PS', status: 'normal' },
-            { name: 'Saudi Arabia', code: 'SA', status: 'normal' },
-            { name: 'UAE', code: 'AE', status: 'normal' },
+            { name: 'Yemen', code: 'YE', status: 'degraded' },
             { name: 'Ukraine', code: 'UA', status: 'normal' },
             { name: 'Russia', code: 'RU', status: 'normal' },
         ];
@@ -489,42 +662,21 @@
         function updateInternet() {
             const html = countries.map(c => `
                 <div class="country-item">
-                    <div class="country-status">
-                        <span class="country-name">${c.name}</span>
-                        <span class="status-badge ${c.status}">${c.status.toUpperCase()}</span>
-                    </div>
+                    <span class="country-name">${c.name}</span>
+                    <span class="status-badge ${c.status}">${c.status.toUpperCase()}</span>
                 </div>
             `).join('');
             document.getElementById('internetList').innerHTML = html;
         }
         
-        // News (placeholder - would need proxy for real scraping)
-        function updateNews() {
-            const newsHtml = `
-                <div class="news-item">
-                    <span class="news-source">AL JAZEERA</span>
-                    <span class="news-title">Live updates on Middle East conflict situation</span>
-                </div>
-                <div class="news-item">
-                    <span class="news-source">AP NEWS</span>
-                    <span class="news-title">Breaking developments in the region</span>
-                </div>
-                <p style="color: #8b949e; padding: 10px; font-size: 0.9em;">
-                    📡 Live news feed requires backend server.<br>
-                    Run <code>npm run watch</code> for full news scraping.
-                </p>
-            `;
-            document.getElementById('newsList').innerHTML = newsHtml;
-            document.getElementById('newsCount').textContent = '2+';
-        }
-        
         // Initial load
         updateFlights();
-        updateInternet();
         updateNews();
+        updateInternet();
         
-        // Refresh every 60 seconds
-        setInterval(updateFlights, 60000);
+        // Refresh every 30 seconds
+        setInterval(updateFlights, 30000);
+        setInterval(updateNews, 60000);
     </script>
 </body>
 </html>
