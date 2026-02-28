@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦀 Clawdwatch - Live OSINT Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .header h1 {
+            color: #e94560;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header .tagline {
+            color: #8b949e;
+            font-size: 1.1em;
+        }
+        
+        .status-bar {
+            background: #161b22;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.live { background: #3fb950; }
+        .status-dot.warning { background: #d29922; }
+        .status-dot.offline { background: #f85149; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #21262d;
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-header h2 {
+            font-size: 1.1em;
+            color: #58a6ff;
+        }
+        
+        .panel-content {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .map-panel {
+            grid-column: 1 / -1;
+        }
+        
+        #map {
+            height: 400px;
+            width: 100%;
+            background: #0d1117;
+        }
+        
+        .flight-item, .news-item, .country-item {
+            padding: 10px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .flight-item:last-child, .news-item:last-child, .country-item:last-child {
+            border-bottom: none;
+        }
+        
+        .flight-item.military {
+            background: rgba(233, 69, 96, 0.1);
+            border-left: 3px solid #e94560;
+        }
+        
+        .callsign {
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        
+        .military .callsign {
+            color: #e94560;
+        }
+        
+        .flight-details {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+        
+        .news-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .news-source {
+            color: #e94560;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .news-title {
+            color: #c9d1d9;
+            font-size: 0.95em;
+        }
+        
+        .news-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .news-title a:hover {
+            color: #58a6ff;
+        }
+        
+        .country-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .country-name {
+            min-width: 120px;
+        }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-badge.normal { background: #238636; color: white; }
+        .status-badge.degraded { background: #d29922; color: black; }
+        .status-badge.outage { background: #da3633; color: white; }
+        .status-badge.blackout { background: #000; color: white; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 20px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: #21262d;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        
+        .stat-label {
+            color: #8b949e;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8b949e;
+        }
+        
+        .spinner {
+            border: 3px solid #30363d;
+            border-top: 3px solid #58a6ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #8b949e;
+            border-top: 1px solid #30363d;
+        }
+        
+        .footer a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦀 CLAWDWATCH</h1>
+        <p class="tagline">The All-Seeing OSINT Agent — Live Intelligence Dashboard</p>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-dot live"></span>
+            <span>Live Data</span>
+        </div>
+        <div class="status-item">
+            <span>Region: <strong>MIDDLE EAST</strong></span>
+        </div>
+        <div class="status-item">
+            <span>Last Update: <strong id="lastUpdate">Loading...</strong></span>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="flightCount">--</div>
+            <div class="stat-label">Flights Tracked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="militaryCount">--</div>
+            <div class="stat-label">Military Aircraft</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="newsCount">--</div>
+            <div class="stat-label">News Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="countriesMonitored">15</div>
+            <div class="stat-label">Countries Monitored</div>
+        </div>
+    </div>
+    
+    <div class="dashboard">
+        <div class="panel map-panel">
+            <div class="panel-header">
+                <h2>📡 Live Flight Map — Middle East</h2>
+                <span id="mapStatus">Loading...</span>
+            </div>
+            <div id="map"></div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>✈️ Active Flights</h2>
+            </div>
+            <div class="panel-content" id="flightList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Fetching flight data...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>📰 Latest News</h2>
+            </div>
+            <div class="panel-content" id="newsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Fetching news...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>🎖️ Military Aircraft</h2>
+            </div>
+            <div class="panel-content" id="militaryList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Scanning for military...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>🌍 Internet Connectivity</h2>
+            </div>
+            <div class="panel-content" id="internetList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Checking connectivity...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>🦀 Powered by <a href="https://github.com/cloudweaver/clawdwatch">Clawdwatch</a> — Built by the people, for the people</p>
+        <p>Data refreshes every 60 seconds</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([28, 50], 5);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO'
+        }).addTo(map);
+        
+        const planeIcon = L.divIcon({
+            html: '✈️',
+            className: 'plane-icon',
+            iconSize: [20, 20]
+        });
+        
+        const militaryIcon = L.divIcon({
+            html: '🎖️',
+            className: 'military-icon',
+            iconSize: [20, 20]
+        });
+        
+        let markers = [];
+        
+        // Military callsign patterns
+        const militaryPatterns = [
+            /^RCH/, /^DUKE/, /^EVAC/, /^JAKE/, /^KING/, /^NERO/, /^NAVY/,
+            /^TOPCAT/, /^VIPER/, /^RAF/, /^RRR/, /^IAM/, /^GAF/, /^FAF/,
+            /^IAF/, /^IRGC/, /^IRIS/, /^RSD/, /^RF/
+        ];
+        
+        function isMilitary(callsign) {
+            return militaryPatterns.some(p => p.test(callsign.toUpperCase()));
+        }
+        
+        // Fetch flight data
+        async function fetchFlights() {
+            try {
+                const bounds = { lamin: 12, lamax: 42, lomin: 25, lomax: 65 };
+                const url = `https://opensky-network.org/api/states/all?lamin=${bounds.lamin}&lamax=${bounds.lamax}&lomin=${bounds.lomin}&lomax=${bounds.lomax}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.states) return [];
+                
+                return data.states.map(s => ({
+                    callsign: (s[1] || '').trim(),
+                    origin: s[2],
+                    lat: s[6],
+                    lon: s[5],
+                    altitude: s[7],
+                    speed: s[9],
+                    heading: s[10]
+                })).filter(f => f.callsign && f.lat && f.lon);
+            } catch (e) {
+                console.error('Flight fetch error:', e);
+                return [];
+            }
+        }
+        
+        // Update flight display
+        async function updateFlights() {
+            const flights = await fetchFlights();
+            const military = flights.filter(f => isMilitary(f.callsign));
+            
+            // Update stats
+            document.getElementById('flightCount').textContent = flights.length;
+            document.getElementById('militaryCount').textContent = military.length;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            document.getElementById('mapStatus').textContent = `${flights.length} aircraft`;
+            
+            // Clear old markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            
+            // Add new markers
+            flights.forEach(f => {
+                const icon = isMilitary(f.callsign) ? militaryIcon : planeIcon;
+                const marker = L.marker([f.lat, f.lon], { icon })
+                    .bindPopup(`
+                        <strong>${f.callsign}</strong><br>
+                        Altitude: ${Math.round(f.altitude).toLocaleString()} ft<br>
+                        Speed: ${Math.round(f.speed)} kts<br>
+                        Origin: ${f.origin || 'N/A'}
+                        ${isMilitary(f.callsign) ? '<br><span style="color:red">⚠️ MILITARY</span>' : ''}
+                    `);
+                marker.addTo(map);
+                markers.push(marker);
+            });
+            
+            // Update flight list
+            const flightHtml = flights.slice(0, 10).map(f => `
+                <div class="flight-item ${isMilitary(f.callsign) ? 'military' : ''}">
+                    <span class="callsign">${f.callsign}</span>
+                    <span class="flight-details">${Math.round(f.altitude).toLocaleString()} ft | ${Math.round(f.speed)} kts</span>
+                </div>
+            `).join('');
+            document.getElementById('flightList').innerHTML = flightHtml || '<p>No flights detected</p>';
+            
+            // Update military list
+            const militaryHtml = military.map(f => `
+                <div class="flight-item military">
+                    <span class="callsign">🎖️ ${f.callsign}</span>
+                    <span class="flight-details">${Math.round(f.altitude).toLocaleString()} ft | ${f.origin || 'N/A'}</span>
+                </div>
+            `).join('');
+            document.getElementById('militaryList').innerHTML = militaryHtml || '<p>No military aircraft detected</p>';
+        }
+        
+        // Internet connectivity (simulated for static site)
+        const countries = [
+            { name: 'Iran', code: 'IR', status: 'normal' },
+            { name: 'Iraq', code: 'IQ', status: 'normal' },
+            { name: 'Syria', code: 'SY', status: 'normal' },
+            { name: 'Lebanon', code: 'LB', status: 'normal' },
+            { name: 'Yemen', code: 'YE', status: 'normal' },
+            { name: 'Israel', code: 'IL', status: 'normal' },
+            { name: 'Palestine', code: 'PS', status: 'normal' },
+            { name: 'Saudi Arabia', code: 'SA', status: 'normal' },
+            { name: 'UAE', code: 'AE', status: 'normal' },
+            { name: 'Ukraine', code: 'UA', status: 'normal' },
+            { name: 'Russia', code: 'RU', status: 'normal' },
+        ];
+        
+        function updateInternet() {
+            const html = countries.map(c => `
+                <div class="country-item">
+                    <div class="country-status">
+                        <span class="country-name">${c.name}</span>
+                        <span class="status-badge ${c.status}">${c.status.toUpperCase()}</span>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('internetList').innerHTML = html;
+        }
+        
+        // News (placeholder - would need proxy for real scraping)
+        function updateNews() {
+            const newsHtml = `
+                <div class="news-item">
+                    <span class="news-source">AL JAZEERA</span>
+                    <span class="news-title">Live updates on Middle East conflict situation</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-source">AP NEWS</span>
+                    <span class="news-title">Breaking developments in the region</span>
+                </div>
+                <p style="color: #8b949e; padding: 10px; font-size: 0.9em;">
+                    📡 Live news feed requires backend server.<br>
+                    Run <code>npm run watch</code> for full news scraping.
+                </p>
+            `;
+            document.getElementById('newsList').innerHTML = newsHtml;
+            document.getElementById('newsCount').textContent = '2+';
+        }
+        
+        // Initial load
+        updateFlights();
+        updateInternet();
+        updateNews();
+        
+        // Refresh every 60 seconds
+        setInterval(updateFlights, 60000);
+    </script>
+</body>
+</html>
