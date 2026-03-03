@@ -33,7 +33,6 @@
 | 🟢 **HTTP API** | Port 3444 |
 | ✈️ **Flights** | OpenSky (rate limited) |
 | 📰 **News** | Reuters, Al Jazeera, AP |
-| 📧 **Email** | AgentMail |
 | 🔍 **Search** | Brave Search |
 
 <br>
