@@ -40,13 +40,14 @@
 
 | Source | Status | Data |
 |--------|--------|------|
-| ✈️ **Flight Tracking** | ✅ LIVE | OpenSky Network — real-time flights |
+| ✈️ **Flight Tracking** | ✅ LIVE | OpenSky Network — real-time flights (rate limited) |
 | 📰 **News Aggregation** | ✅ LIVE | Reuters, Al Jazeera, AP News |
 | 🌍 **Global Coverage** | ✅ LIVE | 21 regions worldwide |
 | ⚔️ **Conflict Zones** | ✅ LIVE | 11 conflict regions tracked |
 | 🌐 **HTTP API** | ✅ LIVE | Port 3444 |
 | 🤖 **LM Studio MCP** | ✅ READY | Connect via HTTP |
 | 📡 **OpenClaw** | ✅ INTEGRATED | Native skill available |
+| 📧 **Email (AgentMail)** | ✅ READY | duckbot@agentmail.to |
 
 ---
 
@@ -80,12 +81,14 @@ npm run regions  # List regions
 |----------|-------------|
 | `GET /status` | Service health check |
 | `GET /regions` | List all 21 regions |
-| `GET /flights` | Combined flight data |
+| `GET /flights` | Combined flight data (rate limited: 30s interval) |
 | `GET /flights/:region` | Specific region flights |
 | `GET /news` | News from Reuters, Al Jazeera, AP |
 | `GET /osint` | Combined OSINT (flights + news) |
 | `GET /conflict` | Conflict zone data (11 regions) |
 | `GET /snapshot` | Quick OSINT summary |
+| `GET /email/inboxes` | List email inboxes |
+| `GET /email/inbox/:address` | Get emails for inbox |
 
 ### Example Usage
 ```bash
@@ -98,9 +101,23 @@ curl http://localhost:3444/conflict
 # Get news
 curl http://localhost:3444/news
 
-# Get flights for specific region
-curl http://localhost:3444/flights/syria
+# Get flights (rate limited - 30s interval)
+curl http://localhost:3444/flights
+
+# List email inboxes
+curl http://localhost:3444/email/inboxes
 ```
+
+---
+
+## ⚠️ OpenSky Rate Limiting
+
+OpenSky Network has rate limits for anonymous users:
+- **400 credits/day** (free tier)
+- **10 second data resolution**
+- Cache is set to 10 minutes to respect limits
+
+For higher limits, sign up at https://opensky-network.org/api/
 
 ---
 
