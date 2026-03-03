@@ -31,6 +31,21 @@ const tools = [
     }
   },
   {
+    name: 'clawdwatch_flight',
+    description: 'Get flight data from conflict regions (alias for flights)',
+    inputSchema: { 
+      type: 'object', 
+      properties: { 
+        region: { type: 'string', description: 'Optional region name' }
+      }
+    }
+  },
+  {
+    name: 'clawdwatch_osint',
+    description: 'Get combined OSINT data (flights + news)',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
     name: 'clawdwatch_news',
     description: 'Get news from Reuters, Al Jazeera, AP',
     inputSchema: { type: 'object', properties: {} }
@@ -61,9 +76,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         data = await fetch(`${baseUrl}/status`).then(r => r.json());
         break;
       case 'clawdwatch_flights':
+      case 'clawdwatch_flight':
         data = args.region 
           ? await fetch(`${baseUrl}/flights/${args.region}`).then(r => r.json())
           : await fetch(`${baseUrl}/flights`).then(r => r.json());
+        break;
+      case 'clawdwatch_osint':
+        data = await fetch(`${baseUrl}/osint`).then(r => r.json());
         break;
       case 'clawdwatch_news':
         data = await fetch(`${baseUrl}/news`).then(r => r.json());
