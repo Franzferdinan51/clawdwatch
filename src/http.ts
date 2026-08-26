@@ -260,8 +260,12 @@ app.get('/flights/:region', async (req, res) => {
 // === NEWS (RSS) — specific routes BEFORE /news/:region ===
 app.get('/news/health', (req, res) => {
   const health: FeedHealth[] = getFeedHealth();
+  const configured = RSS_FEEDS.filter((f) => f.enabled).length;
   res.json({
     timestamp: new Date().toISOString(),
+    configured,
+    fetched: health.length,
+    pending: Math.max(configured - health.length, 0),
     ok: health.filter((h) => h.ok).length,
     failing: health.filter((h) => !h.ok).length,
     feeds: health,
