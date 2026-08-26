@@ -130,7 +130,7 @@ function makeClient(opts: CliOptions): AxiosInstance {
     baseURL: opts.base,
     timeout: opts.timeout,
     validateStatus: () => true, // we handle non-2xx ourselves
-    headers: { 'user-agent': 'clawdwatch-cli/2.4' },
+    headers: { 'user-agent': 'clawdwatch-cli/2.5.0' },
   });
 }
 

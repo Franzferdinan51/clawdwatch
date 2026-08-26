@@ -117,7 +117,7 @@ function buildTools(catalog) {
 // ---------------------------------------------------------------------------
 const server = new Server({
   name: 'clawdwatch',
-  version: '2.4.0-lobster'
+  version: '2.5.0-lobster'
 }, {
   capabilities: { tools: {} }
 });

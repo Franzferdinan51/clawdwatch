@@ -40,7 +40,7 @@
 
 [![Status](https://img.shields.io/badge/STATUS-ACTIVE-red?style=flat-square&labelColor=000)](https://github.com/Franzferdinan51/clawdwatch-lobster-edition)
 [![HTTP API](https://img.shields.io/badge/HTTP%20API-Port%203444-blue?style=flat-square&labelColor=000)](https://github.com/Franzferdinan51/clawdwatch-lobster-edition)
-[![Version](https://img.shields.io/badge/VERSION-2.4--lobster-orange?style=flat-square&labelColor=000)](https://github.com/Franzferdinan51/clawdwatch-lobster-edition)
+[![Version](https://img.shields.io/badge/VERSION-2.5.0--lobster-orange?style=flat-square&labelColor=000)](https://github.com/Franzferdinan51/clawdwatch-lobster-edition)
 [![Based on](https://img.shields.io/badge/BASED%20ON-cloudweaver%2Fclawdwatch-purple?style=flat-square&labelColor=000)](https://github.com/cloudweaver/clawdwatch)
 [![OSIRIS](https://img.shields.io/badge/INSPIRED%20BY-OSIRIS%20%2F%20simplifaisoul-cyan?style=flat-square&labelColor=000)](https://github.com/simplifaisoul/osiris)
 [![License](https://img.shields.io/badge/LICENSE-MIT-green?style=flat-square&labelColor=000)](LICENSE)
