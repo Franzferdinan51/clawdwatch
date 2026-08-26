@@ -30,7 +30,7 @@
 | 🌍 **Coverage** | Truly global — **62 regions** across 6 continents |
 | 🛰 **Endpoints** | 39 (Intel + RECON + OSIRIS-derived) |
 | ✈️ **Flights** | OpenSky Network (global) |
-| 📰 **News** | 30 RSS feeds, global |
+| 📰 **News** | 31 RSS feeds, global |
 | 🌋 **Disasters** | USGS earthquakes, GDACS global alerts |
 | 🌦 **Weather** | NOAA NWS, Open-Meteo |
 | 🔌 **MCP** | LM Studio ready |
@@ -136,7 +136,7 @@ curl http://localhost:3444/ssl/github.com
 | `GET /news/:region` | Filter by region (`world`, `middle_east`, `asia`, `europe`, `south_asia`, `russia`, `eastern_europe`, `africa`, `israel`, `tech`, `oceania`) |
 | `GET /news/sources` | List all configured feeds |
 | `GET /news/health` | Per-source OK/error status |
-| `GET /news/live` | 🆕 24/7 live broadcast catalog (NBC, CBS, ABC, Bloomberg, Sky News, Al Jazeera, NHK, WION, +10 more) |
+| `GET /news/live` | 🆕 24/7 live broadcast catalog (NBC, CBS, ABC, Bloomberg, Sky News, Al Jazeera, NHK, WION, +7 more) |
 
 ### Intel (earthquakes, weather, disasters, DEFCON)
 
