@@ -120,6 +120,7 @@ function hit(path) {
       r.status === 200 &&
       r.isJson &&
       parseFloat(r.elapsed) <= maxSeconds;
+    results[results.length - 1] = { ...r, ok };
     if (ok) {
       console.log(`✓ HTTP 200  (${r.bytes}b, ${r.elapsed}s)`);
     } else {
@@ -129,7 +130,7 @@ function hit(path) {
   }
 
   console.log();
-  const passed = results.filter((r) => r.status === 200 && r.isJson).length;
+  const passed = results.filter((r) => r.ok).length;
   const failed = results.length - passed;
   console.log(`Result: ${passed} passed, ${failed} failed of ${results.length}`);
 
