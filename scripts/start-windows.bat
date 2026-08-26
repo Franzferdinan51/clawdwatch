@@ -5,7 +5,7 @@ set "SCRIPT_DIR=%~dp0"
 pushd "%SCRIPT_DIR%.."
 
 set "CLAWDWATCH_COMMAND=%~1"
-if "%CLAWDWATCH_COMMAND%"=="" set "CLAWDWATCH_COMMAND=watch"
+if "%CLAWDWATCH_COMMAND%"=="" set "CLAWDWATCH_COMMAND=start"
 if not "%~1"=="" shift
 
 set "FORWARD_ARGS="

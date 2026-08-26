@@ -6,7 +6,7 @@ REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${REPO_DIR}"
 
-COMMAND="${1:-watch}"
+COMMAND="${1:-start}"
 if [[ $# -gt 0 ]]; then
   shift
 fi
