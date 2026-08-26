@@ -362,7 +362,7 @@ Add to `~/.lmstudio/mcp.json`:
 }
 ```
 
-The MCP server proxies to `http://localhost:3444` and **auto-syncs its tool catalog from the live server's `/` endpoint on every startup**. Whatever endpoints the server exposes, MCP exposes as `clawdwatch_*` tools — no manual catalog maintenance needed. 37 tools as of v2.4 (`clawdwatch_status`, `clawdwatch_flights`, `clawdwatch_osint`, `clawdwatch_whois`, `clawdwatch_geo`, `clawdwatch_sslInspect`, `clawdwatch_scan`, `clawdwatch_liveNews`, `clawdwatch_ofacCheck`, ...). Override the backend URL with the `CLAWDWATCH_URL` env var.
+The MCP server proxies to `http://localhost:3444` and **auto-syncs its tool catalog from the live server's `/` endpoint on every startup**. Whatever endpoints the server exposes, MCP exposes as `clawdwatch_*` tools — no manual catalog maintenance needed. 37 tools as of v2.5 (`clawdwatch_status`, `clawdwatch_flights`, `clawdwatch_osint`, `clawdwatch_whois`, `clawdwatch_geo`, `clawdwatch_sslInspect`, `clawdwatch_scan`, `clawdwatch_liveNews`, `clawdwatch_ofacCheck`, ...). Override the backend URL with the `CLAWDWATCH_URL` env var.
 
 **Lobster bonus:** with [Desktop Control Lobster](https://github.com/Franzferdinan51/clawdwatch-lobster-edition) you can chain MCP tool output to direct mouse/keyboard automation of any desktop app or Android device.
 
@@ -436,7 +436,7 @@ clawdwatch-lobster-edition/
 | `npm run snapshot` | One-shot OSINT snapshot to console |
 | `npm run regions` | List regions with bounds |
 | `npm run build` | Compile TypeScript |
-| `node scripts/test-endpoints.js` | 🆕 Smoke-test all 34 endpoints (needs server running) |
+| `npm run test:e2e` | 🆕 Smoke-test all 34 endpoints (needs server running) |
 
 ---
 
