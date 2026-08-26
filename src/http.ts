@@ -777,7 +777,7 @@ app.get('/scan', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ClawdWatch Lobster Edition v2.4 running on port ${PORT}`);
+  console.log(`ClawdWatch Lobster Edition v2.5.0 running on port ${PORT}`);
   console.log(`  regions:  ${ALL_REGIONS.length}`);
   console.log(`  rss:      ${RSS_FEEDS.filter((f) => f.enabled).length} feeds enabled`);
   console.log(`  defcon:   GET /defcon for current DEFCON level`);
