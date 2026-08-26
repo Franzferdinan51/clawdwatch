@@ -33,9 +33,10 @@ const ENDPOINTS = [
   ['/news/world', 30],
 
   // Flights
-  ['/flights', 30],
-  ['/flights/global', 30],
-  ['/flights/japan', 15],
+  // OpenSky enforces a 10s request interval; retries can make these take ~45s.
+  ['/flights', 60],
+  ['/flights/global', 60],
+  ['/flights/japan', 60],
 
   // Intel
   ['/earthquakes', 15],
@@ -44,9 +45,9 @@ const ENDPOINTS = [
   ['/weather?lat=40.7128&lon=-74.0060', 15],
   ['/defcon', 5],
   ['/defcon/score', 5],
-  ['/conflict', 15],
+  ['/conflict', 60],
   ['/osint', 60],
-  ['/snapshot', 30],
+  ['/snapshot', 60],
 
   // OSIRIS-integrated endpoints
   // (some require free API keys — see .env.example)

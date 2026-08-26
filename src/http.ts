@@ -777,6 +777,17 @@ app.get('/scan', async (req, res) => {
   res.json(result);
 });
 
+// Keep the API contract JSON even for unknown routes and unexpected failures.
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.path });
+});
+
+app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (res.headersSent) return next(err);
+  console.error(`[http] unhandled ${req.method} ${req.path}`, err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 app.listen(PORT, () => {
   console.log(`ClawdWatch Lobster Edition v2.5.0 running on port ${PORT}`);
   console.log(`  regions:  ${ALL_REGIONS.length}`);

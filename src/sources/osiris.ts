@@ -36,7 +36,12 @@ async function cached<T>(key: string, fn: () => Promise<T>, ttlMs: number): Prom
   if (hit && Date.now() - hit.ts < ttlMs) return hit.data as T;
   try {
     const data = await fn();
-    cache.set(key, { data, ts: Date.now() });
+    // Do not let a transient upstream failure or empty response poison the
+    // cache for the full TTL. Successful values can be reused safely; null
+    // results should be retried on the next request.
+    if (data !== null && data !== undefined) {
+      cache.set(key, { data, ts: Date.now() });
+    }
     return data;
   } catch (e: any) {
     console.error(`[osiris:${key}] error: ${e.message}`);
