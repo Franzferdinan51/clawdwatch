@@ -18,6 +18,8 @@ fi
 
 echo "Installing Clawdwatch dependencies..."
 npm install
+echo "Installing MCP dependencies..."
+npm install --prefix mcp-clawdwatch
 
 if [[ ! -f .env && -f .env.example ]]; then
   cp .env.example .env

@@ -26,6 +26,14 @@ if errorlevel 1 (
   exit /b %EXIT_CODE%
 )
 
+echo Installing MCP dependencies...
+call npm install --prefix mcp-clawdwatch
+if errorlevel 1 (
+  set "EXIT_CODE=%ERRORLEVEL%"
+  popd
+  exit /b %EXIT_CODE%
+)
+
 if not exist ".env" if exist ".env.example" (
   copy /Y ".env.example" ".env" >nul
   echo Created .env from .env.example
