@@ -128,7 +128,7 @@ curl http://localhost:3444/ssl/github.com
 | `GET /flights/:region` | Single region by id or alias (e.g. `/flights/me`, `/flights/jp`) |
 | `GET /flights/global` | Whole-world OpenSky query |
 
-### News (30 RSS feeds)
+### News (31 RSS feeds)
 
 | Endpoint | Description |
 |----------|-------------|
@@ -273,7 +273,7 @@ All regions support aliases (e.g. `me`, `gulf`, `levant`, `ksa`, `apac`, `nafric
 
 ---
 
-## 📰 News Sources (30 feeds)
+## 📰 News Sources (31 feeds)
 
 | Source | Region | Notes |
 |--------|--------|-------|
@@ -289,12 +289,12 @@ All regions support aliases (e.g. `me`, `gulf`, `levant`, `ksa`, `apac`, `nafric
 | NPR World | world | Direct RSS |
 | CBS News | world | Direct RSS |
 | ABC News | world | Direct RSS |
-| Politico | world | Direct RSS (intermittent 403s) |
+| Politico | world | Direct RSS with Google News fallback |
 | LA Times | world | Direct RSS |
 | The Straits Times | world | Direct RSS |
 | The Independent | world | Direct RSS |
-| Times of Israel | israel | Direct RSS |
-| Middle East Eye | middle_east | Direct RSS (intermittent 404) |
+| Times of Israel | israel | Direct RSS with Google News fallback |
+| Middle East Eye | middle_east | Direct RSS with `/rss.xml` fallback |
 | i24 News | israel | Direct RSS |
 | Jerusalem Post | israel | Direct RSS |
 | VOA Middle East | middle_east | Direct RSS |
