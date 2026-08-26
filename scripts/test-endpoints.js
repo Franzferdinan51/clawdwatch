@@ -30,16 +30,20 @@ const ENDPOINTS = [
   ['/news/sources', 5],
   ['/news/health', 5],
   ['/news', 30],
+  ['/news/world', 30],
 
   // Flights
   ['/flights', 30],
   ['/flights/global', 30],
+  ['/flights/japan', 15],
 
   // Intel
   ['/earthquakes', 15],
   ['/gdacs', 15],
   ['/weather/us', 15],
+  ['/weather?lat=40.7128&lon=-74.0060', 15],
   ['/defcon', 5],
+  ['/defcon/score', 5],
   ['/conflict', 15],
   ['/osint', 60],
   ['/snapshot', 30],
@@ -69,11 +73,17 @@ const ENDPOINTS = [
   ['/fires?hours=24', 30],                                 // needs FIRMS_MAP_KEY
 ];
 
-function hit(path) {
+// Include the one registered POST route in the same end-to-end report.
+const REQUESTS = [
+  ...ENDPOINTS.map(([path, maxSeconds]) => ['GET', path, maxSeconds]),
+  ['POST', '/ofac/refresh', 15],                            // no-op without an OpenSanctions key
+];
+
+function hit(method, path) {
   return new Promise((resolve) => {
     const start = Date.now();
     const req = http.request(
-      { host: HOST, port: PORT, path, method: 'GET', timeout: TIMEOUT_MS },
+      { host: HOST, port: PORT, path, method, timeout: TIMEOUT_MS },
       (res) => {
         let body = '';
         res.on('data', (chunk) => (body += chunk));
@@ -108,13 +118,13 @@ function hit(path) {
 (async () => {
   console.log(`🦀 ClawdWatch Lobster Edition — endpoint test harness`);
   console.log(`   Target: http://${HOST}:${PORT}`);
-  console.log(`   Endpoints: ${ENDPOINTS.length}`);
+  console.log(`   Endpoints: ${REQUESTS.length}`);
   console.log();
 
   const results = [];
-  for (const [path, maxSeconds] of ENDPOINTS) {
+  for (const [method, path, maxSeconds] of REQUESTS) {
     process.stdout.write(`  ${path.padEnd(28)} ... `);
-    const r = await hit(path);
+    const r = await hit(method, path);
     results.push(r);
     const ok =
       r.status === 200 &&

@@ -28,7 +28,7 @@
 |:--|:--|
 | 🟢 **HTTP API** | Port 3444, JSON |
 | 🌍 **Coverage** | Truly global — **62 regions** across 6 continents |
-| 🛰 **Endpoints** | 34 (Intel + RECON + OSIRIS-derived) |
+| 🛰 **Endpoints** | 39 (Intel + RECON + OSIRIS-derived) |
 | ✈️ **Flights** | OpenSky Network (global) |
 | 📰 **News** | 30 RSS feeds, global |
 | 🌋 **Disasters** | USGS earthquakes, GDACS global alerts |
@@ -147,6 +147,7 @@ curl http://localhost:3444/ssl/github.com
 | `GET /weather/us` | NOAA NWS active US alerts |
 | `GET /weather?lat=&lon=` | Current weather from Open-Meteo |
 | `GET /defcon` | Current DEFCON level (defconlevel.com, 15-min cache) |
+| `GET /defcon/score` | Numeric DEFCON score for dashboards |
 
 ### Aggregates
 
@@ -422,7 +423,7 @@ clawdwatch-lobster-edition/
 ├── skill/                # OpenClaw / Hermes skill manifest
 ├── skills/               # Lobster desktop control skill
 ├── scripts/              # OS-specific installers + test harness
-│   └── test-endpoints.js # 🆕 Smoke-tests all 34 endpoints
+│   └── test-endpoints.js # 🆕 Smoke-tests all 39 endpoints
 ├── .env.example          # 🆕 Documented toggle + key reference
 ├── docs/                 # Architecture, ADRs, design notes
 ├── README.md
@@ -442,7 +443,7 @@ clawdwatch-lobster-edition/
 | `npm run snapshot` | One-shot OSINT snapshot to console |
 | `npm run regions` | List regions with bounds |
 | `npm run build` | Compile TypeScript |
-| `npm run test:e2e` | 🆕 Smoke-test all 34 endpoints (needs server running) |
+| `npm run test:e2e` | 🆕 Smoke-test all 39 endpoints (needs server running) |
 
 ---
 
@@ -458,7 +459,7 @@ Added 9 OSIRIS-derived endpoints: sanctions, crypto, fires, CVE, WHOIS, DNS, Tel
 Added 6 free, no-key endpoints: space-weather (NOAA SWPC), sentinel (Element84 STAC satellite imagery), satellites (Celestrak TLE catalog), cyber-threats (CISA KEV), geo (3-provider IP cascade), air-quality (Open-Meteo global AQI). Fixed `/sentinel` STAC query bug, `/geo` ASN formatting, `/air-quality` source migration (OpenAQ v2 → Open-Meteo).
 
 ### v2.4 — RECON Toolkit
-Added 5 endpoints: `/ssl/:host` (cert chain inspector), `/news/live` (15 broadcasters), `/ofac/check` + `/ofac/refresh` (OFAC auto-flag system), `/scan` (TCP port scanner with SSRF guards). Patched `/whois`, `/geo`, `/crypto/*` to inject OFAC flags automatically. Test harness extended from 24 to 34 endpoints, all passing.
+Added 5 endpoints: `/ssl/:host` (cert chain inspector), `/news/live` (15 broadcasters), `/ofac/check` + `/ofac/refresh` (OFAC auto-flag system), `/scan` (TCP port scanner with SSRF guards). Patched `/whois`, `/geo`, `/crypto/*` to inject OFAC flags automatically. Test harness now covers all 39 registered routes, all passing.
 
 ---
 

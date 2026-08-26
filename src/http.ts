@@ -170,6 +170,7 @@ app.get('/', (req, res) => {
       weatherAlerts:'GET /weather/us            (NWS active US alerts)',
       weather:      'GET /weather?lat=&lon=     (current wx from Open-Meteo)',
       defcon:       'GET /defcon                (current DEFCON level from defconlevel.com)',
+      defconScore:  'GET /defcon/score          (numeric DEFCON score for dashboards)',
       conflict:     'GET /conflict              (ME-focused legacy summary)',
       osint:        'GET /osint                 (global situational summary)',
       snapshot:     'GET /snapshot              (one-call daily brief)',
