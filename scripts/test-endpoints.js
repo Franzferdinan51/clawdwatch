@@ -40,7 +40,8 @@ const ENDPOINTS = [
 
   // Intel
   ['/earthquakes', 15],
-  ['/gdacs', 15],
+  // GDACS can take ~20s when its upstream feed is slow, while still returning valid JSON.
+  ['/gdacs', 30],
   ['/weather/us', 15],
   ['/weather?lat=40.7128&lon=-74.0060', 15],
   ['/defcon', 5],
