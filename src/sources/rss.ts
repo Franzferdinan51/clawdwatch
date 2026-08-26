@@ -15,6 +15,7 @@ export interface RssFeed {
   name: string;         // display name
   region: string;       // coverage region tag
   feedUrl: string;      // public RSS/Atom URL
+  fallbackUrls?: string[]; // ordered backups for feeds that block or move their primary URL
   homepageUrl: string;  // for link fallback
   enabled: boolean;
   weight: number;       // sort priority (lower = more important)
@@ -29,8 +30,8 @@ export const RSS_FEEDS: RssFeed[] = [
   // === Middle East ===
   { id: 'reuters_me', name: 'Reuters (via Google News)', region: 'middle_east', feedUrl: 'https://news.google.com/rss/search?q=reuters+world&hl=en-US&gl=US&ceid=US:en', homepageUrl: 'https://www.reuters.com', enabled: true, weight: 1 },
   { id: 'aljazeera', name: 'Al Jazeera', region: 'middle_east', feedUrl: 'https://www.aljazeera.com/xml/rss/all.xml', homepageUrl: 'https://www.aljazeera.com', enabled: true, weight: 2 },
-  { id: 'toi', name: 'Times of Israel', region: 'israel', feedUrl: 'https://www.timesofisrael.com/feed/', homepageUrl: 'https://www.timesofisrael.com', enabled: true, weight: 1 },
-  { id: 'middle_easteye', name: 'Middle East Eye', region: 'middle_east', feedUrl: 'https://www.middleeasteye.net/rss', homepageUrl: 'https://www.middleeasteye.net', enabled: true, weight: 4 },
+  { id: 'toi', name: 'Times of Israel', region: 'israel', feedUrl: 'https://www.timesofisrael.com/feed/', fallbackUrls: ['https://news.google.com/rss/search?q=site%3Atimesofisrael.com&hl=en-US&gl=US&ceid=US:en'], homepageUrl: 'https://www.timesofisrael.com', enabled: true, weight: 1 },
+  { id: 'middle_easteye', name: 'Middle East Eye', region: 'middle_east', feedUrl: 'https://www.middleeasteye.net/rss', fallbackUrls: ['https://www.middleeasteye.net/rss.xml'], homepageUrl: 'https://www.middleeasteye.net', enabled: true, weight: 4 },
   { id: 'voa_me', name: 'VOA Middle East', region: 'middle_east', feedUrl: 'https://www.voanews.com/rss', homepageUrl: 'https://www.voanews.com', enabled: true, weight: 5 },
   { id: 'i24news', name: 'i24 News', region: 'israel', feedUrl: 'https://www.i24news.tv/en/rss', homepageUrl: 'https://www.i24news.tv', enabled: true, weight: 5 },
   { id: 'jpost', name: 'Jerusalem Post', region: 'israel', feedUrl: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', homepageUrl: 'https://www.jpost.com', enabled: true, weight: 5 },
@@ -46,7 +47,7 @@ export const RSS_FEEDS: RssFeed[] = [
   { id: 'abc_news', name: 'ABC News Top Stories', region: 'world', feedUrl: 'https://abcnews.go.com/abcnews/topstories', homepageUrl: 'https://abcnews.go.com', enabled: true, weight: 4 },
   { id: 'cnn_world_gn', name: 'CNN World (via Google News)', region: 'world', feedUrl: 'https://news.google.com/rss/search?q=cnn+world&hl=en-US&gl=US&ceid=US:en', homepageUrl: 'https://www.cnn.com/world', enabled: true, weight: 4 },
   { id: 'npr_world', name: 'NPR World', region: 'world', feedUrl: 'https://feeds.npr.org/1001/rss.xml', homepageUrl: 'https://www.npr.org', enabled: true, weight: 4 },
-  { id: 'politico_world', name: 'Politico', region: 'world', feedUrl: 'https://www.politico.com/rss/politicopicks.xml', homepageUrl: 'https://www.politico.com', enabled: true, weight: 5 },
+  { id: 'politico_world', name: 'Politico', region: 'world', feedUrl: 'https://www.politico.com/rss/politicopicks.xml', fallbackUrls: ['https://news.google.com/rss/search?q=site%3Apolitico.com&hl=en-US&gl=US&ceid=US:en'], homepageUrl: 'https://www.politico.com', enabled: true, weight: 5 },
   { id: 'la_times', name: 'LA Times World', region: 'world', feedUrl: 'https://www.latimes.com/world/rss2.0.xml', homepageUrl: 'https://www.latimes.com/world', enabled: true, weight: 5 },
   { id: 'straitstimes', name: 'The Straits Times', region: 'world', feedUrl: 'https://www.straitstimes.com/news/world/rss.xml', homepageUrl: 'https://www.straitstimes.com', enabled: true, weight: 5 },
   { id: 'independent_uk', name: 'The Independent', region: 'world', feedUrl: 'https://www.independent.co.uk/news/world/rss', homepageUrl: 'https://www.independent.co.uk', enabled: true, weight: 5 },
@@ -142,6 +143,7 @@ export interface FeedHealth {
   itemCount: number;
   lastFetched: string | null;
   lastError?: string;
+  url?: string;
 }
 
 const feedHealth: Map<string, FeedHealth> = new Map();
@@ -157,41 +159,44 @@ export async function fetchFeed(feed: RssFeed, useCache = true): Promise<NewsIte
     return cached.data;
   }
 
-  try {
-    const res = await axios.get(feed.feedUrl, {
-      timeout: FEED_TIMEOUT,
-      headers: {
-        'User-Agent': 'ClawdWatch-Lobster/1.0 (+https://github.com/Franzferdinan51/clawdwatch-lobster-edition)',
-        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
-      },
-      // Don't barf on non-2xx; we'll record it as a health failure
-      validateStatus: () => true,
-    });
+  const urls = [feed.feedUrl, ...(feed.fallbackUrls || [])];
+  const errors: string[] = [];
 
-    if (res.status >= 400) {
-      feedHealth.set(feed.id, {
-        id: feed.id, name: feed.name, region: feed.region, ok: false,
-        itemCount: 0, lastFetched: new Date().toISOString(),
-        lastError: `HTTP ${res.status}`,
+  for (const url of urls) {
+    try {
+      const res = await axios.get(url, {
+        timeout: FEED_TIMEOUT,
+        headers: {
+          'User-Agent': 'ClawdWatch-Lobster/1.0 (+https://github.com/Franzferdinan51/clawdwatch-lobster-edition)',
+          'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        },
+        // Don't barf on non-2xx; try the next configured URL instead.
+        validateStatus: () => true,
       });
-      return [];
-    }
 
-    const items = parseFeedXml(res.data, feed);
-    feedCache.set(feed.id, { data: items, timestamp: Date.now() });
-    feedHealth.set(feed.id, {
-      id: feed.id, name: feed.name, region: feed.region, ok: true,
-      itemCount: items.length, lastFetched: new Date().toISOString(),
-    });
-    return items;
-  } catch (e: any) {
-    feedHealth.set(feed.id, {
-      id: feed.id, name: feed.name, region: feed.region, ok: false,
-      itemCount: 0, lastFetched: new Date().toISOString(),
-      lastError: e.message?.slice(0, 120) || 'fetch failed',
-    });
-    return [];
+      if (res.status >= 400) {
+        errors.push(`${url}: HTTP ${res.status}`);
+        continue;
+      }
+
+      const items = parseFeedXml(res.data, feed);
+      feedCache.set(feed.id, { data: items, timestamp: Date.now() });
+      feedHealth.set(feed.id, {
+        id: feed.id, name: feed.name, region: feed.region, ok: true,
+        itemCount: items.length, lastFetched: new Date().toISOString(), url,
+      });
+      return items;
+    } catch (e: any) {
+      errors.push(`${url}: ${e.message?.slice(0, 100) || 'fetch failed'}`);
+    }
   }
+
+  feedHealth.set(feed.id, {
+    id: feed.id, name: feed.name, region: feed.region, ok: false,
+    itemCount: 0, lastFetched: new Date().toISOString(),
+    lastError: errors.join('; ').slice(0, 240), url: feed.feedUrl,
+  });
+  return [];
 }
 
 /**

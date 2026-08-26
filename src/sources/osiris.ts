@@ -314,10 +314,21 @@ export async function fetchCve(id: string): Promise<CveRecord | null> {
   return cached(
     `cve:${normalized}`,
     async () => {
-      const r = await axios.get(NVD_BASE, {
-        params: { cveId: normalized },
-        timeout: TIMEOUT,
-      });
+      let r: any;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          r = await axios.get(NVD_BASE, {
+            params: { cveId: normalized },
+            timeout: TIMEOUT,
+          });
+          break;
+        } catch (e: any) {
+          const status = e.response?.status;
+          const retryable = status === 404 || status === 429 || status >= 500 || !status;
+          if (attempt === 1 || !retryable) throw e;
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+      }
       const vuln = r.data?.vulnerabilities?.[0]?.cve;
       if (!vuln) return null;
 
